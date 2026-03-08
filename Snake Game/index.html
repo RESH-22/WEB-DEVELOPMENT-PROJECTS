@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Snake Game</title>
+
+<style>
+body{
+    text-align:center;
+    font-family:Arial;
+}
+
+canvas{
+    border:7px dashed #4A4747;
+}
+
+h1{
+    font-size:35px;
+    margin:0;
+    padding-bottom:25px;
+    text-decoration: underline;
+    color:#0520A5;
+}
+</style>
+
+<script>
+function play_game(){
+
+var level = 120;
+var rect_w = 45;
+var rect_h = 30;
+var inc_score = 50;
+
+var snake_color = "#0520A5";
+
+var ctx;
+var tn = [];
+var x_dir = [-1,0,1,0];
+var y_dir = [0,-1,0,1];
+
+var queue = [];
+var food = 1;
+
+var map = [];
+
+var X = Math.floor(Math.random()*(rect_w-10))+5;
+var Y = Math.floor(Math.random()*(rect_h-10))+5;
+
+var direction = Math.floor(Math.random()*4);
+var interval;
+var score = 0;
+
+var i,dir;
+
+var canvas = document.getElementById("playArea");
+ctx = canvas.getContext("2d");
+
+/* initialize map */
+for(i=0;i<rect_w;i++){
+    map[i]=[];
+    for(var j=0;j<rect_h;j++){
+        map[i][j]=0;
+    }
+}
+
+/* create food */
+function random_food(){
+    var x,y;
+
+    do{
+        x=Math.floor(Math.random()*rect_w);
+        y=Math.floor(Math.random()*rect_h);
+    }
+    while(map[x][y]);
+
+    map[x][y]=1;
+
+    ctx.fillStyle="red";
+    ctx.fillRect(x*10,y*10,10,10);
+}
+
+random_food();
+
+/* game loop */
+function game_loop(){
+
+    if(tn.length){
+        dir=tn.pop();
+
+        if((dir%2)!==(direction%2)){
+            direction=dir;
+        }
+    }
+
+    X += x_dir[direction];
+    Y += y_dir[direction];
+
+    /* collision */
+    if(X<0 || Y<0 || X>=rect_w || Y>=rect_h || map[X][Y]==2){
+
+        document.getElementById("show").innerHTML =
+        "Game Over<br>Score: <b>"+score+"</b><br><br>" +
+        "<button onclick='location.reload()'>Play Again</button>";
+
+        clearInterval(interval);
+        return;
+    }
+
+    if(map[X][Y]==1){
+        score += inc_score;
+        random_food();
+        food++;
+    }
+
+    ctx.fillStyle=snake_color;
+    ctx.fillRect(X*10,Y*10,10,10);
+
+    map[X][Y]=2;
+    queue.unshift([X,Y]);
+
+    if(queue.length>food){
+        var tail=queue.pop();
+        map[tail[0]][tail[1]]=0;
+        ctx.clearRect(tail[0]*10,tail[1]*10,10,10);
+    }
+}
+
+interval=setInterval(game_loop,level);
+
+/* keyboard controls */
+document.onkeydown=function(e){
+
+    var code=e.keyCode-37;
+
+    if(code>=0 && code<4){
+        tn.unshift(code);
+    }
+
+    /* pause with space */
+    if(e.keyCode==32){
+        if(interval){
+            clearInterval(interval);
+            interval=null;
+        }else{
+            interval=setInterval(game_loop,level);
+        }
+    }
+}
+
+}
+</script>
+</head>
+
+<body onload="play_game()">
+
+<h1>Play Snake Game</h1>
+
+<div id="show"></div>
+
+<canvas id="playArea" width="450" height="300">
+Your browser does not support HTML5
+</canvas>
+
+</body>
+</html>
